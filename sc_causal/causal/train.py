@@ -111,7 +111,7 @@ def train(
                 if phase == 'train':
                     loss, losses_dict = net.step(y, p, p1h, gene, optimizer, beta_schedule[epoch], gamma_schedule[epoch], train_hard, recon_scale)
                 else:
-                    outs = net(y, p, p1h, train_hard)
+                    outs = net(y, p, p1h)
                     losses_dict = net.loss_function(y, outs, beta_schedule[epoch], gamma_schedule[epoch], recon_scale)
                     loss = losses_dict['loss'].item()
 

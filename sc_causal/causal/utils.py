@@ -28,56 +28,6 @@ def read_adata_from_web():
         adata = sc.read_h5ad(datafile)
     return adata
 
-
-def create_id_and_ood_h5ad(out_name):
-    # adata = read_adata_from_web()
-    adata = sc.read_h5ad('./h5ad_datafiles/K562_essential_raw_singlecell_01.h5ad')
-    df = pd.read_csv('../crl_urop_code/dataset_exploration/embedding_csvs_nofilter/embeddings_logreg_scores.csv').fillna(0)
-    genelist = adata.obs['gene'].value_counts().index.tolist()
-    good_perturbs = []
-    for gene in genelist:
-        logreg = df[df['Gene'] == gene]['cv_mean'].item()
-        count = df[df['Gene'] == gene]['counts'].item()
-        if logreg >= 0.6 and count >= 200:
-            good_perturbs.append(gene)
-
-    train_ptbs = [adata[adata.obs['gene'] == 'non-targeting']]
-    random.shuffle(good_perturbs)
-    genes_train = good_perturbs[:int(0.9*len(good_perturbs))]
-    genes_test_ood = good_perturbs[int(0.9*len(good_perturbs)):]
-
-    assert list(set(genes_train) & set(genes_test_ood)) == []
-
-    val_ptbs = []
-    test_ptbs = []
-    test_ptbs_ood = []
-    for ptb in genes_train:
-        a_train, a_test = train_test_split(adata[adata.obs['gene'] == ptb], test_size = 0.2)
-        a_train, a_val = train_test_split(a_train[a_train.obs['gene'] == ptb], test_size = 1/8)
-        train_ptbs.append(a_train)
-        val_ptbs.append(a_val)
-        test_ptbs.append(a_test)
-
-    for ptb in genes_test_ood:
-        a_test = adata[adata.obs['gene'] == ptb]
-        test_ptbs_ood.append(a_test)
-
-    adata_train = ad.concat(train_ptbs)
-    adata_val = ad.concat(val_ptbs)
-    adata_test = ad.concat(test_ptbs)
-    adata_test_ood = ad.concat(test_ptbs_ood)
-    
-    adata_train.obs['split'] = ['train'] * len(adata_train)
-    adata_val.obs['split'] = ['val'] * len(adata_val)
-    adata_test.obs['split'] = ['test'] * len(adata_test)
-    adata_test_ood.obs['split'] = ['test_ood'] * len(adata_test_ood)
-
-    adata = ad.concat([adata_train, adata_val, adata_test, adata_test_ood])
-    adata.write_h5ad(f'./h5ad_datafiles/{out_name}.h5ad')
-
-    return adata
-
-
 def make_multiple_splits(splits, idx):
     test_split = splits[idx]
     train_split = splits[:idx] + splits[idx+1:]
@@ -85,9 +35,8 @@ def make_multiple_splits(splits, idx):
     return train_split, test_split
 
 def create_out_of_distribution_h5ad(out_name, n_splits = 5):
-    # adata = read_adata_from_web()
-    adata = sc.read_h5ad('./h5ad_datafiles/K562_essential_raw_singlecell_01.h5ad')
-    df = pd.read_csv('../crl_urop_code/dataset_exploration/embedding_csvs_nofilter/embeddings_logreg_scores.csv').fillna(0)
+    adata = read_adata_from_web()
+    df = pd.read_csv('./train_util_files/embeddings_logreg_scores.csv').fillna(0)
     genelist = adata.obs['gene'].value_counts().index.tolist()
     good_perturbs = []
     for gene in genelist:
@@ -136,13 +85,12 @@ def create_out_of_distribution_h5ad(out_name, n_splits = 5):
         adata_concat = ad.concat([adata_train, adata_val, adata_test])
         adata_concat.write_h5ad(f'./h5ad_datafiles/{out_name}_{split_num}.h5ad')
 
-    # return adata
-
+    return adata
 
 def create_in_distribution_h5ad(out_name):
     datafile = read_adata_from_web()
     adata = sc.read_h5ad(datafile)
-    df = pd.read_csv('../crl_urop_code/dataset_exploration/embedding_csvs_nofilter/embeddings_logreg_scores.csv').fillna(0)
+    df = pd.read_csv('./train_util_files/embeddings_logreg_scores.csv').fillna(0)
     genelist = adata.obs['gene'].value_counts().index.tolist()
     good_perturbs = []
     for gene in genelist:

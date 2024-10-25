@@ -15,7 +15,7 @@ from causal.model import CausalVAE_Gaussian as CausalVAE
 
 from torch.distributions import Normal
 from tqdm import tqdm_pandas, tqdm
-from causal.dataset import PerturbDataset, SCDATA_sampler, PairedPerturbDataset
+from causal.dataset import PerturbDataset, SCDATA_sampler
 import argparse
 
 BATCHSIZE = 32
@@ -111,8 +111,6 @@ def compute_predictions(
         bar = tqdm(dataloader, desc='computing predictions: '.ljust(20))
 
         ads_true = []
-        likelihood = {}
-
 
         variables = {
             'y': [],
@@ -168,7 +166,7 @@ def compute_predictions(
                 variables['ptb_name'].append(gene)
 
                 for var in variables:
-                    if var in ['lkl', 'rates', 'dropouts', 'lib_vars', 'ptb_name']:#, 'shift']:
+                    if var == 'ptb_name':
                         continue
                     pred = pred_vars[var]
                     pred = pred.reshape(-1, pred.shape[-1])
@@ -195,24 +193,13 @@ def compute_predictions(
             nontargeting.obs['idx'] = [-1] * nontargeting.shape[0]
 
             variables['y'].append(nontargeting)
-        for mode in inference_modes:
-            likelihood[mode] /= total
         variables['y'] += ads_true
 
         for var in variables:
-            if var in ['lkl', 'rates', 'dropouts', 'lib_vars', 'ptb_name']:
+            if var == 'ptb_name':
                 continue
             variables[var] = ad.concat(variables[var])
         
-        for mode in inference_modes:
-            if len(rates[mode]) > 0 and len(dropouts[mode]) > 0 and len(lib_vars[mode]) > 0:
-                rates[mode] = np.vstack(rates[mode])
-                dropouts[mode] = np.vstack(dropouts[mode])
-                lib_vars[mode] = np.vstack(lib_vars[mode])
-        
-        rates = np.array([x for x in rates.values()])
-        dropouts = np.array([x for x in dropouts.values()])
-        lib_vars = np.array([x for x in lib_vars.values()])
         return variables
 
     if type(shiftval) == list:
@@ -232,9 +219,9 @@ def inference(model, p, p1h, device, shiftval = None, gene = None, normed = Fals
     p_zero = torch.zeros_like(p).to(device)
 
     if hard:
-        latents = model.compute_latents(x, p, p1h, gene = gene)
+        latents = model.compute_latents(x, p, p1h)
     else:
-        latents = model.compute_latents(x, p, p1h, gene = gene, p_augment = p_zero,)
+        latents = model.compute_latents(x, p, p1h, p_augment = p_zero,)
 
     if shiftval is None:
         c = latents['c']
@@ -295,9 +282,6 @@ def eval(args):
     for var in variables:
         if var == 'ptb_name':
             continue
-        if var in ['lkl', 'rates', 'dropouts', 'lib_vars', 'theta']:
-            values = variables[var]
-            np.save(f'{out_root}/{save_name}_{var}.npy', values)
         else:
             adata = variables[var]
             adata.write(f'{out_root}/{save_name}_{var}.h5ad')
@@ -312,17 +296,15 @@ if __name__ == '__main__':
                         help='name of model')
     parser.add_argument('-d', '--device', default=0, type=int,
                         help='cuda device number')
-    parser.add_argument('-p', '--ptb_type', default='genept', type=str, 
-                        help='Perturbation encoding type: [onehot, expression, genept]')
-    parser.add_argument('--perturb-dim', default=1536, type=int,
+    parser.add_argument('-p', '--ptb_type', default='pca', type=str, 
+                        help='Perturbation encoding type: [onehot, expression, genept, pca]')
+    parser.add_argument('--perturb-dim', default=50, type=int,
                         help='perturbation dimension')
     parser.add_argument('-x', '--downsample', default = 1, type = float, help = 'fraction of dataset to evaluate on')
     parser.add_argument('--data-split', default = None)
-    parser.add_argument('--graph', default = 'causal', type=str)
+    parser.add_argument('--graph', default = 'full', type=str)
     parser.add_argument('--shiftval', default = None, type=float, required = False)
     parser.add_argument('--ood-split', default = None, type=int, required = False)
-    parser.add_argument('--normed', action = 'store_true', help = 'use normed distribution')
-    parser.add_argument('--hard', action = 'store_true', help = 'trained on hard inference?')
     parser.add_argument('--rand-graph-seed', default = 0, type = int, help = 'random seed for graph generation')
 
 
@@ -346,8 +328,8 @@ if __name__ == '__main__':
         'data_split': args.data_split,
         'graph': args.graph,
         'shiftval': args.shiftval,
-        'normed': args.normed,
-        'hard': args.hard,
+        'normed': True,
+        'hard': True,
         'ood_split': args.ood_split,
         'rand_graph_seed': args.rand_graph_seed
     }

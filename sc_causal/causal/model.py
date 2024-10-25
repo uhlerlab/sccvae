@@ -135,13 +135,10 @@ class CausalVAE_Gaussian(nn.Module):
             'shift': c*p_enc,
         }
 
-    def forward(self, y, p, p1h, gene=None, train_hard = False):
-        if train_hard:
-            X_sample = self.Xs[np.random.choice(self.Xs.shape[0], y.shape[0]),:]
-            X_sample = torch.from_numpy(X_sample).to(self.device).double()
-            latents = self.compute_latents(X_sample, p, p1h, gene=gene)
-        else:
-            latents = self.compute_latents(y, p, p1h, gene=gene)
+    def forward(self, y, p, p1h):
+        X_sample = self.Xs[np.random.choice(self.Xs.shape[0], y.shape[0]),:]
+        X_sample = torch.from_numpy(X_sample).to(self.device).double()
+        latents = self.compute_latents(X_sample, p, p1h)
 
         recons = self.reconstruct(latents['z'], latents['ptb_enc'], latents['c'])
 
@@ -152,7 +149,7 @@ class CausalVAE_Gaussian(nn.Module):
             'pz': pz_dist,
             'y': recons['y'],
             'X_pred': recons['X'],
-            'X_gt': X_sample if train_hard else y
+            'X_gt': X_sample
         }
  
     def loss_function(self, y, outs, beta, alpha, recon_scale = 1.0):
@@ -184,7 +181,7 @@ class CausalVAE_Gaussian(nn.Module):
     def step(self, y, p, p1h, gene, optimizer, beta, alpha, train_hard, recon_scale, clip_grad = True):
         assert self.training is True
 
-        outputs = self.forward(y, p, p1h, gene, train_hard)
+        outputs = self.forward(y, p, p1h)
         losses_dict = self.loss_function(y, outputs, beta, alpha, recon_scale)
         loss = losses_dict['loss']
 

@@ -92,12 +92,13 @@ def main(args, CONFIG):
         split_num = CONFIG['split_num']
     )
     
-    suffix = args.description
+    desc = args.description
     
-    savedir = f'{args.out_dir}/outs/finetune_{datetime.now().strftime("%m-%d-%Y_%H:%M:%S")}_{suffix}'
+    savedir = f'{args.out_dir}/outs/{desc}'
     print(f'saving to {savedir}')
 
-    os.mkdir(savedir)
+    if not os.path.isdir(savedir):
+        os.mkdir(savedir)
     
     with open(f"{savedir}/config.json", 'w') as f: 
         json.dump(CONFIG, f)
@@ -134,20 +135,20 @@ if __name__ == '__main__':
                         help='name of save directory')
     parser.add_argument('-u', '--upload-dir', default='', type=str,
                         help='directory of pretrained model')
-    parser.add_argument('-l', '--learning-rate', default=1e-3, type=float,
+    parser.add_argument('-l', '--learning-rate', default=5e-4, type=float,
                         help='learning rate')
     parser.add_argument('-b', '--beta-max', default=1, type=float,
                         help='max beta')
     parser.add_argument('-j', '--gamma-start', default=0, type=int,
                         help='gamma')
-    parser.add_argument('-g', '--gamma-max', default=1, type=float,
+    parser.add_argument('-g', '--gamma-max', default=10, type=float,
                         help='gamma')
     parser.add_argument('-a', '--beta-start', default=0, type=int,
                         help='start of beta schedule')
     parser.add_argument('--seed', default=20, type=int,
                         help='seed')
     parser.add_argument('--schedule', action='store_true', help='use a lr schedule or not')
-    parser.add_argument('-p', '--ptb_type', default='onehot', type=str,
+    parser.add_argument('-p', '--ptb_type', default='pca', type=str,
                         help='Perturbation encoding type: [onehot, expression, genept]')
     parser.add_argument('-d', '--device', default=0, type=int,
                         help='cuda device number')
@@ -157,23 +158,21 @@ if __name__ == '__main__':
                         help='patience for lr scheduler')
     parser.add_argument('--num-epochs', default=100, type=int,
                         help='number of training epochs')
-    parser.add_argument('--perturb-dim', default=512, type=int,
+    parser.add_argument('--perturb-dim', default=50, type=int,
                         help='perturbation dimension')
     parser.add_argument('--finetune', action='store_true',
                         help='True if finetuning OOD preds else false')
     parser.add_argument('-n', action='store_true', help = 'use nontargeting only')
-    parser.add_argument('-m', default='causal', type=str, help = 'causal, conditional, random')
+    parser.add_argument('-m', default='full', type=str, help = 'causal, conditional, random')
     parser.add_argument('--ood', action='store_true', help = 'OOD evals or no')
     parser.add_argument('--marker', action='store_true', help = 'true if using top 50 marker genes')
     parser.add_argument('-e', action='store_true', help = 'run evaluations')
-    parser.add_argument('--recon-scale', default=1.0, type=float, help='scale for mse X')
+    parser.add_argument('--recon-scale', default=0.25, type=float, help='scale for mse X')
     parser.add_argument('-x', '--description', default='', type=str,
                         help='brief description of what this run includes')
     parser.add_argument('--n-hidden', default=2, type=int,
                         help='num hidden layers')
     parser.add_argument('--split-num', default=-1, type=int)
-    parser.add_argument('--train-hard', action='store_true', help = 'train on hard inference')
-    parser.add_argument('--ptbbatch', action='store_true', help = 'make batches by perturbations')
     parser.add_argument('--random-graph-seed', default=0, type=int, help='seed for random graph')
     
     torch.set_default_dtype(torch.float64)
@@ -209,8 +208,8 @@ if __name__ == '__main__':
         'ood': args.ood,
         'finetune': args.finetune,
         'marker': args.marker,
-        'train_hard': args.train_hard,
-        'ptbbatch': args.ptbbatch,
+        'train_hard': True,
+        'ptbbatch': True,
         'split_num': args.split_num,
         'recon_scale': args.recon_scale,
         'rand_graph_seed': args.random_graph_seed

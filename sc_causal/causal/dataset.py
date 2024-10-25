@@ -86,9 +86,6 @@ class PerturbDataset(Dataset):
         warning = []
         inverse_frequencies = []
 
-        with open('./train_util_files/GenePT_gene_embedding_ada_text.pickle', 'rb') as f:
-            self.genept_embeddings = pickle.load(f)
-
         self.pca_embeddings = {}
 
         for gene in genelist:
@@ -97,7 +94,7 @@ class PerturbDataset(Dataset):
                 self.gene_exps_1h[gene][0, 512] = 1
                 self.gene_exps[gene] = np.zeros((1, 10691))
             else:
-                if len(idxlist[idxlist['gene'] == gene]) == 0 or gene not in self.genept_embeddings: # filter genes not being considered
+                if len(idxlist[idxlist['gene'] == gene]) == 0: # filter genes not being considered
                     warning.append(gene)
                     continue
 
@@ -106,7 +103,6 @@ class PerturbDataset(Dataset):
                 idx = idxlist[idxlist['gene'] == gene]['idx'].item()
                 self.gene_exps[gene] = expressions[:, idx:idx+1].T
                 self.pca_embeddings[gene] = self.pca_embeddings_50[idx:idx+1, :]
-                self.genept_embeddings[gene] = np.array(self.genept_embeddings[gene])
             
             y = adata.X[adata.obs['gene'] == gene] # n by 8563
             ptb_ids.extend([gene]*y.shape[0])
@@ -130,7 +126,6 @@ class PerturbDataset(Dataset):
 
         self.sample_freqs = torch.Tensor(inverse_frequencies)
 
-        self.genept_embeddings['non-targeting'] = np.zeros((1, self.ptb_dim))
         self.pca_embeddings['non-targeting'] = np.zeros((1, self.ptb_dim))
 
     def __getitem__(self, item):
@@ -153,11 +148,8 @@ class PerturbDataset(Dataset):
         elif self.ptb_type == 'expression':
             p = torch.squeeze(torch.from_numpy(self.gene_exps[gene]).float())
             return p[np.random.choice(p.shape[0], self.ptb_dim)], p1h
-        elif self.ptb_type == 'pca':
-            p = torch.squeeze(torch.from_numpy(self.pca_embeddings[gene])).float()
-            return p, p1h
-        assert self.ptb_type == 'genept'
-        p = torch.squeeze(torch.from_numpy(self.genept_embeddings[gene])).float()
+        assert self.ptb_type == 'pca'
+        p = torch.squeeze(torch.from_numpy(self.pca_embeddings[gene])).float()
         return p, p1h
 
 class SCDATA_sampler(Sampler):
