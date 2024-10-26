@@ -20,15 +20,25 @@ import argparse
 
 BATCHSIZE = 32
 
-def get_eval_data(batch_size, data_mode, ptb_type, ptb_dim, split = -1):
+
+def derive_nontargeting_from_adata(adata_original):
+    nontargeting_subset = adata_original[adata_original.obs['ptb'].isin(['non-targeting', 'nontargeting_ref'])].copy()
+    nontargeting_subset.obs['ptb'] = ['nontargeting_ref'] * len(nontargeting_subset)
+    nontargeting_subset.obs['y'] = ['predicted'] * len(nontargeting_subset) # "Predict" nontargeting distribution as baseline
+
+    adata_nontargeting = ad.concat([adata_original, nontargeting_subset])
+    return adata_nontargeting
+
+def get_eval_data(batch_size, data_mode, ptb_type, ptb_dim, split = -1, parent_dir = False):
+    prefix = '.' if parent_dir else ''
     if split == -1:
-        ptbfile = f'./h5ad_datafiles/k562_annotated_raw_allnontargetinginval.h5ad'
+        ptbfile = f'{prefix}./h5ad_datafiles/k562_annotated_raw_allnontargetinginval.h5ad'
     else:
-        ptbfile = f'./h5ad_datafiles/k562_annotated_raw_ood_split_{split}.h5ad'
+        ptbfile = f'{prefix}./h5ad_datafiles/k562_annotated_raw_ood_split_{split}.h5ad'
 
     dataset = PerturbDataset(
             perturbfile = ptbfile,
-            gene_id_file = './train_util_files/new_estimated_dag_gene.csv',
+            gene_id_file = f'{prefix}./train_util_files/new_estimated_dag_gene.csv',
             mode = data_mode,
             ptb_type=ptb_type,
             ptb_dim = ptb_dim
@@ -59,7 +69,8 @@ def compute_predictions(
         hard = True,
         ood_split = -1,
         rand_graph_seed = 0,
-        net = None):
+        net = None, 
+        parent_dir = False):
     print(device)
     print(inference_modes)
 
@@ -82,7 +93,7 @@ def compute_predictions(
         )
     else:
         dataset, dataloader = data
-
+    prefix = '.' if parent_dir else ''
     if net is None:
         model = CausalVAE(
             ptb_dim=ptb_dim,
@@ -90,11 +101,12 @@ def compute_predictions(
             z_dim=512,
             enc_hidden = [1024, 1024], 
             dec_hidden = [1024, 1024], 
-            B_filename='./train_util_files/B_512_upper_triangular.npy',
+            B_filename=f'{prefix}./train_util_files/B_512_upper_triangular.npy',
             device = device,
             mode = setting,
             ptb_encode = ptb_type,
-            rand_graph_seed=rand_graph_seed
+            rand_graph_seed=rand_graph_seed,
+            parent_dir = parent_dir
         )
     else:
         model = net
@@ -180,7 +192,7 @@ def compute_predictions(
         
         if not exists_nontargeting:
 
-            adata = sc.read_h5ad('./h5ad_datafiles/k562_annotated_raw_allnontargetinginval.h5ad')
+            adata = sc.read_h5ad(f'{prefix}./h5ad_datafiles/k562_annotated_raw_allnontargetinginval.h5ad')
 
             adata = adata[adata.obs['gene'] == 'non-targeting']
             sc.pp.normalize_total(adata)

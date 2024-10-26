@@ -44,7 +44,10 @@ def pca(adata):
 
 # Take average of all expressions per perturbation, or average of everything if None, and return MSE
 # ptb is either None or a single perturbation
-def mse(adata, ptb=None, marker_genes = False):
+
+# Take average of all expressions per perturbation, or average of everything if None, and return MSE
+# ptb is either None or a single perturbation
+def mse(adata, ptb=None, marker_genes = False, include_error = False):
     if ptb is not None:
         adata = adata[adata.obs['ptb'].isin(['nontargeting_ref', ptb])]
     adata_predicted = adata[adata.obs['y'] == 'predicted']
@@ -59,18 +62,22 @@ def mse(adata, ptb=None, marker_genes = False):
         adata_predicted = adata_predicted[:, top_50_marker]
         adata_true = adata_true[:, top_50_marker]
 
+    if include_error:
+        return np.mean((adata_predicted.X.mean(0) - adata_true.X.mean(0))**2), np.std((adata_predicted.X.mean(0) - adata_true.X.mean(0))**2)
+
     return np.mean((adata_predicted.X.mean(0) - adata_true.X.mean(0))**2)
 
-def mse_per_ptb(adata, ptbs=None, marker_genes = False):
+def mse_per_ptb(adata, ptbs=None, marker_genes = False, include_error = False):
     if ptbs is None:
         ptbs = sorted(list(set(adata.obs['ptb'])))
     
     mses = {}
     for one_ptb in ptbs:
-        val = mse(adata, one_ptb, marker_genes)
+        val = mse(adata, one_ptb, marker_genes, include_error)
         if val is not None:
             mses[one_ptb] = val
     return mses
+
 
 def energy_distance(adata, ptb=None, marker_genes = False):
     if ptb is not None:

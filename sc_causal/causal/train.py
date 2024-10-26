@@ -31,8 +31,11 @@ def train(
         marker = False,
         train_hard = True,
         recon_scale = 0.25,
-        rand_graph_seed = 0,):
+        rand_graph_seed = 0,
+        parent_dir = False):
     torch.set_default_dtype(torch.float64)
+
+    prefix = '.' if parent_dir else ''
 
     run = wandb.init(project='crl', name=savedir, dir=savedir)
     net = CausalVAE(
@@ -41,7 +44,7 @@ def train(
         z_dim = 512,
         enc_hidden = [hidden_size]*n_hidden,
         dec_hidden = [hidden_size]*(n_hidden),
-        B_filename='./train_util_files/B_512_upper_triangular.npy',
+        B_filename=f'{prefix}./train_util_files/B_512_upper_triangular.npy',
         device = device,
         mode = mode,
         ptb_encode = ptb_encode,

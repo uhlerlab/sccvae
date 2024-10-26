@@ -86,7 +86,7 @@ def inference(id):
 def metrics():
     sys.path.append('../../')
     from causal.metrics import mse_per_ptb, mmd_per_ptb, pearsonr_per_ptb, frac_correct_direction_per_ptb, frac_changed_direction_per_ptb, energy_per_ptb
-    from visualize_predictions.make_barplots_scripting import derive_nontargeting_from_adata
+    from causal.inference import derive_nontargeting_from_adata
 
     fnames = [
         'results_gears_withnontargeting.h5ad',

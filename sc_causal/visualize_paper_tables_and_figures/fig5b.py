@@ -34,8 +34,8 @@ for k in selected_gene_groups:
     for v in GENE_MODULES[k]:
         INVERSE_PTB_MAPPING[v] = k
 
-mean = False
-var = 'u_shift'
+mean = True
+var = 'u'
 print(var)
 
 meanstr = 'mean' if mean else 'all'
@@ -109,7 +109,9 @@ color_map['Other Genes'] = 'lightgrey'
 
 fig, ax = plt.subplots(1, 1,)
 
-sc.pl.umap(all_ptbs, size=90, 
+# There may be some variation in the UMAP plot due to the random initialization of the UMAP algorithm and small sample size.
+# However, the clusters of perturbation modules should all be identifiable.
+sc.pl.umap(all_ptbs, size=360, 
         color=['ptb_module'], 
     legend_fontsize=15, 
     groups = selected_gene_groups,
@@ -119,5 +121,5 @@ sc.pl.umap(all_ptbs, size=90,
 )
 ax.set_xlabel('')
 ax.set_ylabel('')
-ax.set_title('Perturbation Modules by PTB Encoding', fontsize=15)
-plt.savefig(f'figures/5a.png', bbox_inches = 'tight')
+ax.set_title('Perturbation Modules by Average PTB Encoding', fontsize=15)
+plt.savefig(f'figures/5b.png', bbox_inches = 'tight')

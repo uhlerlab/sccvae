@@ -22,7 +22,7 @@ top_50_marker = [8562, 2858, 2844, 2845, 2846, 2847, 2848, 2849, 2850, 2851, 285
                  2841, 2840, 2811, 2812, 2813, 2814, 2815, 2816, 2817, 2818, 2819, 2820, 2821, 2822, 2823, 2824]
 
 class PerturbDataset(Dataset):
-    def __init__(self, perturbfile, gene_id_file, mode, ptb_type='onehot', ptb_dim = 512, include_nontargeting = None, marker_genes = False):
+    def __init__(self, perturbfile, gene_id_file, mode, ptb_type='onehot', ptb_dim = 512, include_nontargeting = None, marker_genes = False, parent_dir = False):
         '''
         perturbfile: h5ad file containing perturbation data
         gene_id_file: csv file containing gene id
@@ -67,7 +67,9 @@ class PerturbDataset(Dataset):
 
         idxlist = pd.read_csv(gene_id_file)
 
-        full_adata = sc.read_h5ad('./h5ad_datafiles/k562_annotated_raw.h5ad')
+        prefix = '.' if parent_dir else ''
+
+        full_adata = sc.read_h5ad(f'{prefix}./h5ad_datafiles/k562_annotated_raw.h5ad')
         sc.pp.normalize_total(full_adata)
         sc.pp.log1p(full_adata)
         nontargeting = full_adata[full_adata.obs['gene'] == 'non-targeting']

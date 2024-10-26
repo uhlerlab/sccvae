@@ -16,26 +16,19 @@ sys.path.append('./')
 from causal.modules import Encoder, PTBEncoder, Decoder_Gaussian, MMD_loss
 
 class CausalVAE_Gaussian(nn.Module):
-    def __init__(self, exp_dim, ptb_dim, z_dim, enc_hidden, dec_hidden, B_filename, mode, device, ptb_encode, rand_graph_seed = 0):
+    def __init__(self, exp_dim, ptb_dim, z_dim, enc_hidden, dec_hidden, B_filename, mode, device, ptb_encode, rand_graph_seed = 0, parent_dir = False):
         torch.set_default_dtype(torch.float64)
         super(CausalVAE_Gaussian, self).__init__()
 
         self.mode = mode
 
+        prefix = '.' if parent_dir else ''
+
         self.device = torch.device(device)
         self.z_encoder = Encoder(input_dim=exp_dim, z_dim=z_dim, hidden_dims=enc_hidden)
         self.perturbation_encoder = PTBEncoder(input_dim=ptb_dim, out_dim=z_dim, hidden_dims=enc_hidden[:2])
 
-        if ptb_encode == 'genept_finetune':
-            self.perturbation_encoder.load_state_dict(torch.load('./train_util_files/pretrained_genept.pth'))
-        elif ptb_encode == 'onehot_finetune':
-            self.perturbation_encoder.load_state_dict(torch.load('./train_util_files/pretrained_onehot.pth'))
-        elif ptb_encode == 'pca_finetune':
-            self.perturbation_encoder.load_state_dict(torch.load('./train_util_files/pretrained_pca.pth'))
-        elif ptb_encode == 'expression_finetune':
-            self.perturbation_encoder.load_state_dict(torch.load('./train_util_files/pretrained_expression.pth'))
-        else:
-            assert ptb_encode in {'pca', 'genept', 'onehot', 'expression'}, 'Invalid ptb_encode argument. Must be one of genept, onehot, pca, or expression.'
+        assert ptb_encode in {'pca', 'genept', 'onehot', 'expression'}, 'Invalid ptb_encode argument. Must be one of genept, onehot, pca, or expression.'
 
         decoder_input_dim = z_dim if mode != 'cvae' else z_dim + ptb_dim
 
@@ -71,7 +64,7 @@ class CausalVAE_Gaussian(nn.Module):
         self.s = nn.Parameter(torch.ones(self.zdim))
         self.s.requires_grad = True
 
-        full_adata = sc.read_h5ad('./h5ad_datafiles/k562_annotated_raw.h5ad')
+        full_adata = sc.read_h5ad(f'{prefix}./h5ad_datafiles/k562_annotated_raw.h5ad')
 
         sc.pp.normalize_total(full_adata)
         sc.pp.log1p(full_adata)

@@ -13,7 +13,7 @@ import os
 from torch.utils.data import DataLoader
 from datetime import datetime
 
-def get_data(batch_size, nontargeting, ptb_type, ptb_dim, ood, finetune, marker, modes = None, ptbbatch = False, split_num = None, tiny = False):
+def get_data(batch_size, nontargeting, ptb_type, ptb_dim, ood, finetune, marker, modes = None, ptbbatch = False, split_num = None, tiny = False, parent_dir = False):
     datasets, dataloaders, dataset_sizes = {}, {}, {}
 
     if modes is None:
@@ -25,21 +25,23 @@ def get_data(batch_size, nontargeting, ptb_type, ptb_dim, ood, finetune, marker,
             else:
                 modes = ['train', 'val']
 
+    prefix = '.' if parent_dir else ''
     for mode in modes:
         if ood:
             if not tiny:
-                perturbfile = f'./h5ad_datafiles/k562_annotated_raw_ood_split_{split_num}.h5ad'
+                perturbfile = f'{prefix}./h5ad_datafiles/k562_annotated_raw_ood_split_{split_num}.h5ad'
             else:
-                perturbfile = f'./h5ad_datafiles/k562_annotated_raw_ood_split_{split_num}_tiny.h5ad'
+                perturbfile = f'{prefix}./h5ad_datafiles/k562_annotated_raw_ood_split_{split_num}_tiny.h5ad'
         else:
-            perturbfile = f'./h5ad_datafiles/k562_annotated_raw_allnontargetinginval.h5ad'
+            perturbfile = f'{prefix}./h5ad_datafiles/k562_annotated_raw_allnontargetinginval.h5ad'
         datasets[mode] = PerturbDataset(
             perturbfile = perturbfile,
-            gene_id_file = './train_util_files/new_estimated_dag_gene.csv',
+            gene_id_file = f'{prefix}./train_util_files/new_estimated_dag_gene.csv',
             mode = mode if not nontargeting else 'non-targeting',
             ptb_type = ptb_type,
             ptb_dim = ptb_dim, 
-            marker_genes = marker
+            marker_genes = marker,
+            parent_dir = parent_dir
         )
 
         if ptbbatch:
