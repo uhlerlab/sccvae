@@ -41,8 +41,8 @@ print(var)
 meanstr = 'mean' if mean else 'all'
 
 # for any variable except for y.
-out_root = 'outs/finetune_10-04-2024_11:58:45_pca_train_X_only_enc_split3_full/inference_best_val_mmd_shiftselect_hard'
-out_train = 'outs/finetune_10-04-2024_11:58:45_pca_train_X_only_enc_split3_full/inference_train_best_val_mmd_shiftselect_hard'
+out_root = 'outs/sccvae_3/inference_best_val_mmd_shiftselect_hard'
+out_train = 'outs/sccvae_3/inference_train_best_val_mmd_shiftselect_hard'
 adata = sc.read_h5ad('../'+out_root + f'_{var}.h5ad')
 adata_train = sc.read_h5ad('../'+out_train + f'_{var}.h5ad')
 

@@ -61,11 +61,11 @@ gears_data = {
 }
 
 out_roots = {
-    "0": "outs/finetune_10-04-2024_11:58:59_pca_train_X_only_enc_split0_full/inference_best_val_mmd_shiftselect_hard",
-    "1": "outs/finetune_10-04-2024_11:58:26_pca_train_X_only_enc_split1_full/inference_best_val_mmd_shiftselect_hard",
-    "2": "outs/finetune_10-04-2024_11:51:03_pca_train_X_only_enc_split2_full/inference_best_val_mmd_shiftselect_hard",
-    "3": "outs/finetune_10-04-2024_11:58:45_pca_train_X_only_enc_split3_full/inference_best_val_mmd_shiftselect_hard",
-    "4": "outs/finetune_10-04-2024_11:59:06_pca_train_X_only_enc_split4_full/inference_best_val_mmd_shiftselect_hard"
+    "0": "outs/sccvae_0/inference_best_val_mmd_shiftselect_hard",
+    "1": "outs/sccvae_1/inference_best_val_mmd_shiftselect_hard",
+    "2": "outs/sccvae_2/inference_best_val_mmd_shiftselect_hard",
+    "3": "outs/sccvae_3/inference_best_val_mmd_shiftselect_hard",
+    "4": "outs/sccvae_4/inference_best_val_mmd_shiftselect_hard"
 }
 
 ctr = 0

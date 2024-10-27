@@ -150,132 +150,130 @@ def generate_closeness_matrix_graph(graph_fname):
     return dists
 
 
-# savedirs = [
-#     (0, '../outs/finetune_10-04-2024_11:58:59_pca_train_X_only_enc_split0_full', 'pca', 50, 'full', None),
-#     (1, '../outs/finetune_10-04-2024_11:58:26_pca_train_X_only_enc_split1_full', 'pca', 50, 'full', None),
-#     (2, '../outs/finetune_10-04-2024_11:51:03_pca_train_X_only_enc_split2_full', 'pca', 50, 'full', None),
-#     (3, '../outs/finetune_10-04-2024_11:58:45_pca_train_X_only_enc_split3_full', 'pca', 50, 'full', None),
-#     (4, '../outs/finetune_10-04-2024_11:59:06_pca_train_X_only_enc_split4_full', 'pca', 50, 'full', None),
-# ]
+savedirs = [
+    (0, '../outs/sccvae_0', 'pca', 50, 'full', None),
+    (1, '../outs/sccvae_1', 'pca', 50, 'full', None),
+    (2, '../outs/sccvae_2', 'pca', 50, 'full', None),
+    (3, '../outs/sccvae_3', 'pca', 50, 'full', None),
+    (4, '../outs/sccvae_4', 'pca', 50, 'full', None),
+]
 
-# datas_and_models = []
+datas_and_models = []
 
-# for batch in savedirs:
-#     i, savedir, ptb_type, ptb_dim, graph_mode, seed = batch
+for batch in savedirs:
+    i, savedir, ptb_type, ptb_dim, graph_mode, seed = batch
 
-#     dataset, _, _ = get_data(
-#         batch_size=32, 
-#         nontargeting=False, 
-#         ptb_type=ptb_type, 
-#         ptb_dim=ptb_dim, 
-#         ood=True if i is not None else False, 
-#         finetune=False, 
-#         marker=False, 
-#         modes = ['train', 'test'],
-#         split_num=i,
-#         tiny = True,
-#         parent_dir = True # Running this from sc_causal
-#         )
+    dataset, _, _ = get_data(
+        batch_size=32, 
+        nontargeting=False, 
+        ptb_type=ptb_type, 
+        ptb_dim=ptb_dim, 
+        ood=True if i is not None else False, 
+        finetune=False, 
+        marker=False, 
+        modes = ['train', 'test'],
+        split_num=i,
+        tiny = True,
+        parent_dir = True # Running this from sc_causal
+        )
 
-#     net = CausalVAE(
-#         ptb_dim=ptb_dim,
-#         exp_dim = 8563,
-#         z_dim=512,
-#         enc_hidden = [1024, 1024], 
-#         dec_hidden = [1024, 1024], 
-#         B_filename='../train_util_files/B_512_upper_triangular.npy',
-#         device = 'cuda:0',
-#         mode = graph_mode,
-#         ptb_encode = ptb_type,
-#         rand_graph_seed=seed,
-#         parent_dir = True
-#     )
-#     model_path = f'{savedir}/best_val_mmd_shiftselect_hard.pth'
+    net = CausalVAE(
+        ptb_dim=ptb_dim,
+        exp_dim = 8563,
+        z_dim=512,
+        enc_hidden = [1024, 1024], 
+        dec_hidden = [1024, 1024], 
+        B_filename='../train_util_files/B_512_upper_triangular.npy',
+        device = 'cuda:0',
+        mode = graph_mode,
+        ptb_encode = ptb_type,
+        rand_graph_seed=seed,
+        parent_dir = True
+    )
+    model_path = f'{savedir}/best_val_mmd_shiftselect_hard.pth'
 
-#     state_dict = torch.load(model_path)['model_state']
+    state_dict = torch.load(model_path)['model_state']
 
-#     # state_dict['s'] = 0
-#     net.load_state_dict(state_dict)
+    # state_dict['s'] = 0
+    net.load_state_dict(state_dict)
 
-#     datas_and_models.append((dataset, net))
-
-
-# for b1, b2 in zip(savedirs, datas_and_models):
-#     split, savedir, ptb_type, ptb_dim, _, _ = b1
-#     print(savedir, ptb_type, ptb_dim)
-#     dataset, net = b2
-
-#     for var in ['u_shift', 'u', 'z_shift', 'z']:
-
-#         perturbations = generate_ptb_values(savedir, dataset, net, ptb_dim, ptb_type, inference_mode = 'hard', var = var)
-#         assert len(perturbations['ptb_names']) == len(perturbations['ptb_ids']), print(len(perturbations['ptb_names']), len(perturbations['ptb_ids']))
-#         assert perturbations['p_encodes'].shape[0] == len(perturbations['ptb_names']), print(perturbations['p_encodes'].shape[0], len(perturbations['ptb_names']))
-#         n_ptbs = len(perturbations['ptb_names'])
-
-#         print(n_ptbs)
-
-#         nontargeting = generate_nontargeting_outputs(savedir, dataset['train'], net, ptb_dim, ptb_type, inference_mode = 'hard', var = var)
-
-#         mmds_and_p_enc_df = {
-#             'ptb': [],
-#             'mmd': [],
-#             'braycurtis': [],
-#             'canberra': [],
-#             'chebyshev': [],
-#             'cityblock': [],
-#             'correlation': [],
-#             'cosine': [],
-#             'euclidean': [],
-#             'jensenshannon': [],
-#             'minkowski_p1.5': [],
-#             'sqeuclidean': [],
-#             'mode': []
-#         }
+    datas_and_models.append((dataset, net))
 
 
-#         yvals = dataset['train'].data['y'].detach().cpu().numpy()
-#         ptb_idx = dataset['train'].data['ptb']
+for b1, b2 in zip(savedirs, datas_and_models):
+    split, savedir, ptb_type, ptb_dim, _, _ = b1
+    print(savedir, ptb_type, ptb_dim)
+    dataset, net = b2
+    var = 'u_shift'
 
-#         yvals_test = dataset['test'].data['y'].detach().cpu().numpy()
-#         ptb_idx_test = dataset['test'].data['ptb']
+    perturbations = generate_ptb_values(savedir, dataset, net, ptb_dim, ptb_type, inference_mode = 'hard', var = var)
+    assert len(perturbations['ptb_names']) == len(perturbations['ptb_ids']), print(len(perturbations['ptb_names']), len(perturbations['ptb_ids']))
+    assert perturbations['p_encodes'].shape[0] == len(perturbations['ptb_names']), print(perturbations['p_encodes'].shape[0], len(perturbations['ptb_names']))
+    n_ptbs = len(perturbations['ptb_names'])
 
-#         adata_nontargeting = sc.AnnData(yvals[ptb_idx == 'non-targeting'])
-#         adata_ptb = sc.AnnData(yvals[ptb_idx != 'non-targeting'])
-#         adata_ptb_test = sc.AnnData(yvals_test[ptb_idx_test != 'non-targeting'])
+    print(n_ptbs)
 
-#         adata = sc.concat([adata_nontargeting, adata_ptb, adata_ptb_test])
-#         adata.obs['y'] = ['ground truth' for _ in range(adata_nontargeting.shape[0])] + ['predicted' for _ in range(adata_ptb.shape[0])] + ['predicted' for _ in range(adata_ptb_test.shape[0])]
-#         adata.obs['ptb'] = ['nontargeting_ref' for _ in range(adata_nontargeting.shape[0])] + [ptb_idx[_] for _ in range(adata_ptb.shape[0])] + [ptb_idx_test[_] for _ in range(adata_ptb_test.shape[0])]
+    nontargeting = generate_nontargeting_outputs(savedir, dataset['train'], net, ptb_dim, ptb_type, inference_mode = 'hard', var = var)
 
-#         # print(adata)
+    mmds_and_p_enc_df = {
+        'ptb': [],
+        'mmd': [],
+        'braycurtis': [],
+        'canberra': [],
+        'chebyshev': [],
+        'cityblock': [],
+        'correlation': [],
+        'cosine': [],
+        'euclidean': [],
+        'jensenshannon': [],
+        'minkowski_p1.5': [],
+        'sqeuclidean': [],
+        'mode': []
+    }
 
-#         mmd = mmd_per_ptb(adata)
 
-#         # print('mmd', mmd)
+    yvals = dataset['train'].data['y'].detach().cpu().numpy()
+    ptb_idx = dataset['train'].data['ptb']
 
-#         for i in range(n_ptbs):
-#             ptb = perturbations['ptb_names'][i]
+    yvals_test = dataset['test'].data['y'].detach().cpu().numpy()
+    ptb_idx_test = dataset['test'].data['ptb']
 
-#             mmds_and_p_enc_df['ptb'].append(perturbations['ptb_names'][i])
-#             mmds_and_p_enc_df['mmd'].append(mmd[ptb])
-#             mmds_and_p_enc_df['braycurtis'].append(braycurtis(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
-#             mmds_and_p_enc_df['canberra'].append(canberra(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
-#             mmds_and_p_enc_df['chebyshev'].append(chebyshev(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
-#             mmds_and_p_enc_df['cityblock'].append(cityblock(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
-#             mmds_and_p_enc_df['correlation'].append(correlation(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
-#             mmds_and_p_enc_df['cosine'].append(cosine(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
-#             mmds_and_p_enc_df['euclidean'].append(euclidean(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
-#             mmds_and_p_enc_df['jensenshannon'].append(jensenshannon(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
-#             mmds_and_p_enc_df['minkowski_p1.5'].append(minkowski(perturbations['p_encodes'][i], nontargeting['p_encodes'][0], p=1.5))
-#             mmds_and_p_enc_df['sqeuclidean'].append(sqeuclidean(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
-#             mmds_and_p_enc_df['mode'].append(perturbations['modes'][i])
+    adata_nontargeting = sc.AnnData(yvals[ptb_idx == 'non-targeting'])
+    adata_ptb = sc.AnnData(yvals[ptb_idx != 'non-targeting'])
+    adata_ptb_test = sc.AnnData(yvals_test[ptb_idx_test != 'non-targeting'])
 
-#         df = pd.DataFrame(mmds_and_p_enc_df)
-#         print(f'Saving to causal_graph_nodes_{split}_mmd_{var}_shiftselected.csv')
-#         os.makedirs('scatter plot tables', exist_ok = True)
-#         df.to_csv(f'scatter plot tables/causal_graph_nodes_retrain_{split}_mmd_{var}_shiftselected.csv')
+    adata = sc.concat([adata_nontargeting, adata_ptb, adata_ptb_test])
+    adata.obs['y'] = ['ground truth' for _ in range(adata_nontargeting.shape[0])] + ['predicted' for _ in range(adata_ptb.shape[0])] + ['predicted' for _ in range(adata_ptb_test.shape[0])]
+    adata.obs['ptb'] = ['nontargeting_ref' for _ in range(adata_nontargeting.shape[0])] + [ptb_idx[_] for _ in range(adata_ptb.shape[0])] + [ptb_idx_test[_] for _ in range(adata_ptb_test.shape[0])]
 
-# with open('train_util_files/B_512_upper_triangular.npy', 'r') as f:
+    # print(adata)
+
+    mmd = mmd_per_ptb(adata)
+
+    # print('mmd', mmd)
+
+    for i in range(n_ptbs):
+        ptb = perturbations['ptb_names'][i]
+
+        mmds_and_p_enc_df['ptb'].append(perturbations['ptb_names'][i])
+        mmds_and_p_enc_df['mmd'].append(mmd[ptb])
+        mmds_and_p_enc_df['braycurtis'].append(braycurtis(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
+        mmds_and_p_enc_df['canberra'].append(canberra(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
+        mmds_and_p_enc_df['chebyshev'].append(chebyshev(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
+        mmds_and_p_enc_df['cityblock'].append(cityblock(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
+        mmds_and_p_enc_df['correlation'].append(correlation(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
+        mmds_and_p_enc_df['cosine'].append(cosine(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
+        mmds_and_p_enc_df['euclidean'].append(euclidean(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
+        mmds_and_p_enc_df['jensenshannon'].append(jensenshannon(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
+        mmds_and_p_enc_df['minkowski_p1.5'].append(minkowski(perturbations['p_encodes'][i], nontargeting['p_encodes'][0], p=1.5))
+        mmds_and_p_enc_df['sqeuclidean'].append(sqeuclidean(perturbations['p_encodes'][i], nontargeting['p_encodes'][0]))
+        mmds_and_p_enc_df['mode'].append(perturbations['modes'][i])
+
+    df = pd.DataFrame(mmds_and_p_enc_df)
+    print(f'Saving to causal_graph_nodes_{split}_mmd_{var}_shiftselected.csv')
+    os.makedirs('scatter plot tables', exist_ok = True)
+    df.to_csv(f'scatter plot tables/causal_graph_nodes_retrain_{split}_mmd_{var}_shiftselected.csv')
+
 from scipy.stats import pearsonr
 import pandas as pd
 import matplotlib.pyplot as plt

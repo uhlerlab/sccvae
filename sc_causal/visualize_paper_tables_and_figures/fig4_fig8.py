@@ -14,7 +14,7 @@ sys.path.append('./')
 
 import argparse
 
-root_fname = 'outs/finetune_10-04-2024_11:58:45_pca_train_X_only_enc_split3_full'
+root_fname = 'outs/sccvae_3'
 ptb = 'MED7'
 shiftvals = [x/10 for x in range(-10, 31, 5)]
 
@@ -157,7 +157,7 @@ plt.savefig(f'figures/4.png', bbox_inches='tight')
 
 
 
-root_fname = 'outs/finetune_10-04-2024_11:51:03_pca_train_X_only_enc_split2_full'
+root_fname = 'outs/sccvae_2'
 
 ptb = 'NLE1'
 shiftvals = [x/10 for x in range(-10, 31, 5)]

@@ -1,11 +1,8 @@
 sc_causal/h5ad_datafiles
 sc_causal/outs
+sc_causal/outs_old
 sc_causal/GEARS/demo/data
 sc_causal/GEARS/demo/inference_anndatas
-sc_causal/GEARS/demo/test_model
-sc_causal/GEARS/demo/test_model_ood_0
-sc_causal/GEARS/demo/test_model_ood_1
-sc_causal/GEARS/demo/test_model_ood_2
-sc_causal/GEARS/demo/test_model_ood_3
-sc_causal/GEARS/demo/test_model_ood_4/
+sc_causal/GEARS/demo/test_models
 *__pycache__*
+*.zip
