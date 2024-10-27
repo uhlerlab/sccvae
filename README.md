@@ -62,7 +62,11 @@ Flags
 - `--ood-split` If OOD, which OOD split is being evaluated.
 
 # Figure replication
-To reproduce the figures from the paper. Starting in the root directory,
+To reproduce the figures from the paper. 
+
+First, download zip files from https://drive.google.com/drive/folders/1rxHl_4EPdoLA-ahyO7Woa9kTa4UOhUrj?usp=sharing. `h5ad_datafiles.zip` and `outs.zip` go in `sc_causal`, and all `.zip` files under the subfolder `GEARS files` go under `sc_causal/GEARS/demo`.
+
+Starting in the root directory,
 ```
 cd sc_causal/visualize_paper_tables_and_figures
 python tables.py
